@@ -43,7 +43,7 @@ router.post('/stripe/charge', optionalAuthentication, async (request, result) =>
         result.status(500).json({ success: false, message: error.message });
     }
 });
-//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.stripe-webhook.js
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.stripe.webhook.js
 const { db } = require('./swizzle-db');
 const Stripe = require('stripe');
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
