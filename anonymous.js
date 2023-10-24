@@ -1,4 +1,4 @@
-//_SWIZZLE_FILE_PATH_post-auth-anonymous.js
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post-auth-anonymous.js
 const { searchUsers, createUser, optionalAuthentication } = require('swizzle-js');
 
 /*
@@ -29,7 +29,7 @@ router.post('/auth/anonymous', optionalAuthentication, async (request, result) =
 
     return result.json({ userId: user.userId, accessToken: accessToken, refreshToken: refreshToken });
 });
-//_SWIZZLE_FILE_PATH_post-auth-anonymous-refresh.js
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post-auth-anonymous-refresh.js
 const { searchUsers, optionalAuthentication } = require('swizzle-js');
 const jwt = require('jsonwebtoken');
 

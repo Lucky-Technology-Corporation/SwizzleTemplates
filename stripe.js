@@ -1,4 +1,4 @@
-//_SWIZZLE_FILE_PATH_post-stripe-intent.js
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post-stripe-intent.js
 const { db } = require('./swizzle-db');
 const { optionalAuthentication } = require('./swizzle-passport');
 const Stripe = require('stripe');
@@ -20,7 +20,7 @@ router.post('/stripe/intent', optionalAuthentication, async (request, result) =>
         result.status(500).json({ success: false, message: error.message });
     }
 });
-//_SWIZZLE_FILE_PATH_post-stripe-charge.js
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post-stripe-charge.js
 const { db } = require('./swizzle-db');
 const { optionalAuthentication } = require('./swizzle-passport');
 const Stripe = require('stripe');
@@ -43,7 +43,7 @@ router.post('/stripe/charge', optionalAuthentication, async (request, result) =>
         result.status(500).json({ success: false, message: error.message });
     }
 });
-//_SWIZZLE_FILE_PATH_post-stripe-webhook.js
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post-stripe-webhook.js
 const { db } = require('./swizzle-db');
 const Stripe = require('stripe');
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);

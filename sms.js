@@ -1,4 +1,4 @@
-//_SWIZZLE_FILE_PATH_post-auth-sms-request.js
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post-auth-sms-request.js
 const { createUser, optionalAuthentication } = require('swizzle-js');
 var telnyx = new Telnyx(process.env.TELNYX_KEY);
 
@@ -32,7 +32,7 @@ router.post('/auth/sms/request', optionalAuthentication, async (request, result)
         result.status(500).send({error: "Couldn't send verification code"});
     }
 });
-//_SWIZZLE_FILE_PATH_post-auth-sms-confirm.js
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post-auth-sms-confirm.js
 const { searchUsers, optionalAuthentication } = require('swizzle-js');
 const jwt = require('jsonwebtoken');
 
@@ -67,7 +67,7 @@ router.post('/auth/sms/confirm', optionalAuthentication, async (request, result)
         result.status(500).send({error: "Couldn't confirm your phone number"});
     }
 });
-//_SWIZZLE_FILE_PATH_post-auth-sms-refresh.js
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post-auth-sms-refresh.js
 const { searchUsers, optionalAuthentication } = require('swizzle-js');
 const jwt = require('jsonwebtoken');
 
