@@ -20,7 +20,6 @@ router.post('/stripe/intent', optionalAuthentication, async (request, result) =>
         result.status(500).json({ success: false, message: error.message });
     }
 });
-//_SWIZZLE_FILE_SPLIT_//
 //_SWIZZLE_FILE_PATH_post-stripe-charge.js
 const { db } = require('./swizzle-db');
 const { optionalAuthentication } = require('./swizzle-passport');
@@ -44,7 +43,6 @@ router.post('/stripe/charge', optionalAuthentication, async (request, result) =>
         result.status(500).json({ success: false, message: error.message });
     }
 });
-//_SWIZZLE_FILE_SPLIT_//
 //_SWIZZLE_FILE_PATH_post-stripe-webhook.js
 const { db } = require('./swizzle-db');
 const Stripe = require('stripe');

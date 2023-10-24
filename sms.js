@@ -32,9 +32,6 @@ router.post('/auth/sms/request', optionalAuthentication, async (request, result)
         result.status(500).send({error: "Couldn't send verification code"});
     }
 });
-
-
-//_SWIZZLE_FILE_SPLIT_//
 //_SWIZZLE_FILE_PATH_post-auth-sms-confirm.js
 const { searchUsers, optionalAuthentication } = require('swizzle-js');
 const jwt = require('jsonwebtoken');
@@ -70,7 +67,6 @@ router.post('/auth/sms/confirm', optionalAuthentication, async (request, result)
         result.status(500).send({error: "Couldn't confirm your phone number"});
     }
 });
-//_SWIZZLE_FILE_SPLIT_//
 //_SWIZZLE_FILE_PATH_post-auth-sms-refresh.js
 const { searchUsers, optionalAuthentication } = require('swizzle-js');
 const jwt = require('jsonwebtoken');
