@@ -15,13 +15,17 @@ var telnyx = new Telnyx(process.env.TELNYX_KEY);
 */
 router.post('/auth/sms/request', optionalAuthentication, async (request, result) => {
     try{
+        if(request.user){
+            return result.status(400).send({error: "Already logged in!"});
+        }
+
         const phoneNumber = request.body.phoneNumber;
         const verificationCode = Math.floor(100000 + Math.random() * 900000);
 
-        if(request.user){
-            await editUser(request.user, {phoneNumber: phoneNumber, verificationCode: verificationCode}, request)
-        }
-        else{
+        const userSearch = searchUsers({phoneNumber: phoneNumber})
+        if(userSearch.length > 0){
+            await editUser(userSearch[0], {verificationCode: verificationCode}, request)
+        } else{
             await createUser({phoneNumber: phoneNumber, verificationCode: verificationCode}, request)
         }
         
@@ -70,7 +74,7 @@ router.post('/auth/sms/confirm', optionalAuthentication, async (request, result)
         const updatedUser = await editUser(pendingUser, { verificationCode: null, isAnonymous: false, updatedAt: new Date() }, request)
         const userId = updatedUser.userId;
 
-        const accessToken = jwt.sign({ userId: userId }, process.env.SWIZZLE_JWT_SECRET_KEY, { expiresIn: '24h' });
+        const accessToken = jwt.sign({ userId: userId }, process.env.SWIZZLE_JWT_SECRET_KEY, { expiresIn: '{{"Token expiry"}}h' });
         const refreshToken = jwt.sign({ userId: userId }, process.env.SWIZZLE_REFRESH_JWT_SECRET_KEY);
         
         return result.status(200).json({ userId: userId, accessToken, refreshToken });
@@ -84,7 +88,7 @@ const { searchUsers, optionalAuthentication } = require('swizzle-js');
 const jwt = require('jsonwebtoken');
 
 /*
-    POST /auth/refresh
+    POST /auth/sms/refresh
     {
         refreshToken: "<token>"
     }
@@ -110,7 +114,7 @@ router.post('/auth/sms/refresh', optionalAuthentication, async (request, result)
             return result.status(401).send({ error: 'Invalid refresh token' });
         }
                   
-        const accessToken = jwt.sign({ userId: userId }, process.env.SWIZZLE_JWT_SECRET_KEY, { expiresIn: '24h' });
+        const accessToken = jwt.sign({ userId: userId }, process.env.SWIZZLE_JWT_SECRET_KEY, { expiresIn: '{{"Token expiry"}}h' });
         const newRefreshToken = jwt.sign({ userId: userId }, process.env.SWIZZLE_REFRESH_JWT_SECRET_KEY);
 
         await editUser(userId, {updatedAt: new Date()}, request)

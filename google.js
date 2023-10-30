@@ -1,10 +1,13 @@
-//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.anonymous.js
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.google.js
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const { db } = require('swizzle-js');
 const { searchUsers, createUser, optionalAuthentication } = require('swizzle-js');
 
 /*
-    POST /auth/anonymous
+    POST /auth/google
     {
-        deviceId: '<any id>'
+        token: "<response.tokenId from Google>"
     }
 
     Response:
@@ -14,39 +17,40 @@ const { searchUsers, createUser, optionalAuthentication } = require('swizzle-js'
         refreshToken: '<token>'
     }
 */
-router.post('/auth/anonymous', optionalAuthentication, async (request, result) => {
-    
-    const { deviceId } = request.body;
-    if (!deviceId) {
-        return result.status(400).send({ error: 'Device id is required' });
-    }
-
-    if(request.user){
-        return result.status(400).send({error: "Already logged in!"});
-    } 
+app.post('/auth/google', async (req, res) => {
+  const token = req.body.token;
+  try {
+    const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+    });
 
     var userId;
-    const userIfDeviceIdExists = searchUsers({deviceId: deviceId})
-    
-    if(userIfDeviceIdExists.length > 0){
-        userId = userIfDeviceIdExists[0].userId
+    const payload = ticket.getPayload();
+    const googleUserId = payload['sub'];
+    const userIfGoogleIdExists = searchUsers({googleUserId: googleUserId})
+    if(userIfGoogleIdExists.length > 0){
+        userId = userIfGoogleIdExists[0].userId
     } else{
-        const user = await createUser({deviceId: deviceId, isAnonymous: true}, request)
-        userId = user.userId
+        //Add additional properties to the user object here if needed
+        //Properties are available under the payload object (e.g. payload["email"]) 
+        //Make sure you request the correct scopes from Google
+        const newUserObject = { googleUserId: googleUserId, email: payload["email"] }
+        const newUser = await createUser(newUserObject, req)
+        userId = newUser.userId
     }
-
-    // Create a JWT token
+    
     const accessToken = jwt.sign({ userId: userId }, process.env.SWIZZLE_JWT_SECRET_KEY, { expiresIn: '{{"Token expiry"}}h' });
     const refreshToken = jwt.sign({ userId: userId }, process.env.SWIZZLE_REFRESH_JWT_SECRET_KEY);
 
-    return result.json({ userId: userId, accessToken: accessToken, refreshToken: refreshToken });
+    res.status(200).json({ userId: userId, accessToken, refreshToken });
+  } catch (error) {
+    res.status(401).json({ error: error });
+  }
 });
-//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.anonymous.refresh.js
-const { searchUsers, optionalAuthentication } = require('swizzle-js');
-const jwt = require('jsonwebtoken');
-
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.google.refresh.js
 /*
-    POST /auth/anonymous/refresh
+    POST /auth/google/refresh
     {
         refreshToken: "<token>"
     }
@@ -58,7 +62,7 @@ const jwt = require('jsonwebtoken');
         refreshToken: '<token>'
     }
 */
-router.post('/auth/anonymous/refresh', optionalAuthentication, async (request, result) => {
+router.post('/auth/google/refresh', optionalAuthentication, async (request, result) => {
     try{
         const { refreshToken } = request.body;
 
