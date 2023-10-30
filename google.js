@@ -69,20 +69,16 @@ router.post('/auth/google/refresh', optionalAuthentication, async (request, resu
         if (!refreshToken) {
             return result.status(400).send({ error: 'Refresh token is required' });
         }
+
+        const tokens = refreshTokens(refreshToken, '{{"Token expiry"}}');
         
-        var userId;
-        try {
-            userId = jwt.verify(refreshToken, process.env.SWIZZLE_REFRESH_JWT_SECRET_KEY).userId;
-        } catch (err) {
+        if(tokens == null){
             return result.status(401).send({ error: 'Invalid refresh token' });
         }
-                  
-        const accessToken = jwt.sign({ userId: userId }, process.env.SWIZZLE_JWT_SECRET_KEY, { expiresIn: '{{"Token expiry"}}h' });
-        const newRefreshToken = jwt.sign({ userId: userId }, process.env.SWIZZLE_REFRESH_JWT_SECRET_KEY);
-
+        
         await editUser(userId, {updatedAt: new Date()}, request)
 
-        return result.json({ userId: userId, accessToken: accessToken, refreshToken: newRefreshToken });
+        return result.json({ userId: userId, accessToken: tokens.accessToken, refreshToken: tokens.refreshToken });
     } catch (err) {
         console.error(err.message);
         result.status(500).send({error: "Couldn't refresh your token"});
