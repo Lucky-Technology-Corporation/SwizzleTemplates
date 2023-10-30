@@ -6,6 +6,13 @@ const { searchUsers, createUser, optionalAuthentication } = require('swizzle-js'
     {
         deviceId: '<any id>'
     }
+
+    Response:
+    {
+        userId: '<user id>'
+        accessToken: '<token>'
+        refreshToken: '<token>'
+    }
 */
 router.post('/auth/anonymous', optionalAuthentication, async (request, result) => {
       
@@ -37,6 +44,13 @@ const jwt = require('jsonwebtoken');
     POST /auth/refresh
     {
         refreshToken: "<token>"
+    }
+
+    Response:
+    {
+        userId: '<user id>'
+        accessToken: '<token>'
+        refreshToken: '<token>'
     }
 */
 router.post('/auth/anonymous/refresh', optionalAuthentication, async (request, result) => {

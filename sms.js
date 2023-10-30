@@ -7,6 +7,11 @@ var telnyx = new Telnyx(process.env.TELNYX_KEY);
     {
         phoneNumber: '+15555555555'
     }
+
+    Response:
+    {
+        message: '<status message>'
+    }
 */
 router.post('/auth/sms/request', optionalAuthentication, async (request, result) => {
     try{
@@ -42,6 +47,13 @@ const jwt = require('jsonwebtoken');
         phone_number: '+15555555555',
         code: '123456'
     }
+
+    Response:
+    {
+        userId: '<user id>'
+        accessToken: '<token>'
+        refreshToken: '<token>'
+    }
 */
 router.post('/auth/sms/confirm', optionalAuthentication, async (request, result) => {
     try{
@@ -75,6 +87,13 @@ const jwt = require('jsonwebtoken');
     POST /auth/refresh
     {
         refreshToken: "<token>"
+    }
+
+    Response:
+    {
+        userId: '<user id>'
+        accessToken: '<token>'
+        refreshToken: '<token>'
     }
 */
 router.post('/auth/sms/refresh', optionalAuthentication, async (request, result) => {
