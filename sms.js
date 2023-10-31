@@ -3,6 +3,7 @@ const { createUser, optionalAuthentication } = require('swizzle-js');
 var telnyx = new Telnyx(process.env.TELNYX_KEY);
 
 /*
+    Request:
     POST /auth/sms/request
     {
         phoneNumber: '+15555555555'
@@ -74,50 +75,11 @@ router.post('/auth/sms/confirm', optionalAuthentication, async (request, result)
         const updatedUser = await editUser(pendingUser, { verificationCode: null, isAnonymous: false, updatedAt: new Date() }, request)
         const userId = updatedUser.userId;
 
-        const { accessToken, refreshToken } = signTokens(userId);
+        const { accessToken, refreshToken } = signTokens(userId, '{{"Token expiry"}}');
         
         return result.status(200).json({ userId: userId, accessToken, refreshToken });
     } catch (err) {
         console.error(err.message);
         result.status(500).send({error: "Couldn't confirm your phone number"});
-    }
-});
-//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.sms.refresh.js
-const { searchUsers, optionalAuthentication, refreshTokens } = require('swizzle-js');
-const jwt = require('jsonwebtoken');
-
-/*
-    POST /auth/sms/refresh
-    {
-        refreshToken: "<token>"
-    }
-
-    Response:
-    {
-        userId: '<user id>'
-        accessToken: '<token>'
-        refreshToken: '<token>'
-    }
-*/
-router.post('/auth/sms/refresh', optionalAuthentication, async (request, result) => {
-    try{
-        const { refreshToken } = request.body;
-
-        if (!refreshToken) {
-            return result.status(400).send({ error: 'Refresh token is required' });
-        }
-
-        const tokens = refreshTokens(refreshToken, '{{"Token expiry"}}');
-        
-        if(tokens == null){
-            return result.status(401).send({ error: 'Invalid refresh token' });
-        }
-
-        await editUser(userId, {updatedAt: new Date()}, request)
-
-        return result.json({ userId: userId, accessToken: tokens.accessToken, refreshToken: tokens.refreshToken });
-    } catch (err) {
-        console.error(err.message);
-        result.status(500).send({error: "Couldn't refresh your token"});
     }
 });
