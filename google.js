@@ -1,6 +1,6 @@
 //_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.google.js
 const { OAuth2Client } = require('google-auth-library');
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const client = new OAuth2Client('{{"Google Client ID"}}');
 const { searchUsers, createUser } = require('swizzle-js');
 
 /*
@@ -22,7 +22,7 @@ app.post('/auth/google', async (req, res) => {
   try {
     const ticket = await client.verifyIdToken({
         idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID,
+        audience: '{{"Google Client ID"}}',
     });
 
     var userId;
@@ -54,7 +54,7 @@ app.post('/auth/google', async (req, res) => {
 import React from 'react';
 import { useAuth } from 'react-auth-kit';
 import { GoogleLogin } from 'react-google-login';
-import api from './path-to-your-api-file'; // Adjust the path accordingly
+import api from '../Api'; // Adjust the path accordingly
 
 function GoogleSignInButton() {
   const { signIn } = useAuth();
@@ -81,7 +81,7 @@ function GoogleSignInButton() {
 
   return (
     <GoogleLogin
-      clientId={process.env.GOOGLE_CLIENT_ID} // Replace with your Google Client ID
+      clientId={'{{"Google Client ID"}}'} // Replace with your Google Client ID
       buttonText="Login with Google"
       onSuccess={handleGoogleSuccess}
       onFailure={handleGoogleFailure}
