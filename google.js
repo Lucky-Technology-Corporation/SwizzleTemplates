@@ -7,7 +7,7 @@ const { searchUsers, createUser } = require('swizzle-js');
     Request:
     POST /auth/google
     {
-        tokenId: 'response.tokenId from Google>'
+        tokenId: '<response.tokenId from Google>'
     }
 
     Response:
@@ -50,3 +50,44 @@ app.post('/auth/google', async (req, res) => {
     res.status(401).json({ error: error });
   }
 });
+//_SWIZZLE_FILE_PATH_frontend/src/components/GoogleSignInButton.js
+import React from 'react';
+import { useAuth } from 'react-auth-kit';
+import { GoogleLogin } from 'react-google-login';
+import api from './path-to-your-api-file'; // Adjust the path accordingly
+
+function GoogleSignInButton() {
+  const { signIn } = useAuth();
+
+  const handleGoogleSuccess = async (response) => {
+    try {
+      const { data } = await api.post('/auth/google', { tokenId: response.tokenId });
+      
+      signIn({
+        token: data.accessToken,
+        refreshToken: data.refreshToken,
+        expiresIn: {{"Token expiry"}}*60,
+        tokenType: "Bearer",
+        userId: data.userId,
+      });
+    } catch (error) {
+      console.error('Error during Google Sign-In:', error);
+    }
+  };
+
+  const handleGoogleFailure = (response) => {
+    console.error('Google Sign-In failed:', response);
+  };
+
+  return (
+    <GoogleLogin
+      clientId={process.env.GOOGLE_CLIENT_ID} // Replace with your Google Client ID
+      buttonText="Login with Google"
+      onSuccess={handleGoogleSuccess}
+      onFailure={handleGoogleFailure}
+      cookiePolicy={'single_host_origin'}
+    />
+  );
+}
+
+export default GoogleSignInButton;
