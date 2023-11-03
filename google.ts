@@ -1,7 +1,9 @@
-//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.google.js
-const { OAuth2Client } = require('google-auth-library');
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.google.ts
+import { OAuth2Client } from 'google-auth-library';
+import express, { Response } from "express";
+import { searchUsers, createUser, signTokens, optionalAuthentication, AuthenticatedRequest } from "swizzle-js";
 const client = new OAuth2Client('{{"Google Client ID"}}');
-const { searchUsers, createUser } = require('swizzle-js');
+const router = express.Router();
 
 /*
     Request:
@@ -17,8 +19,8 @@ const { searchUsers, createUser } = require('swizzle-js');
         refreshToken: '<token>'
     }
 */
-app.post('/auth/google', async (req, res) => {
-  const token = req.body.tokenId;
+router.post('/auth/google', optionalAuthentication, async (request: AuthenticatedRequest, response: Response) => {
+  const token = request.body.tokenId;
   try {
     const ticket = await client.verifyIdToken({
         idToken: token,
@@ -26,7 +28,7 @@ app.post('/auth/google', async (req, res) => {
     });
 
     var userId;
-    const payload = ticket.getPayload();
+    const payload = ticket.getPayload() || {};
     const googleUserId = payload['sub'];
     
     const userIfGoogleIdExists = searchUsers({ googleUserId: googleUserId })
@@ -39,18 +41,18 @@ app.post('/auth/google', async (req, res) => {
         //Make sure you request the correct scopes from Google
 
         const newUserObject = { googleUserId: googleUserId, email: payload['email'] }
-        const newUser = await createUser(newUserObject, req)
+        const newUser = await createUser(newUserObject, request)
         userId = newUser.userId
     }
     
     const { accessToken, refreshToken } = signTokens(userId, '{{"Token expiry"}}');
 
-    res.status(200).json({ userId: userId, accessToken, refreshToken });
+    response.status(200).json({ userId: userId, accessToken, refreshToken });
   } catch (error) {
-    res.status(401).json({ error: error });
+    response.status(401).json({ error: error });
   }
 });
-//_SWIZZLE_FILE_PATH_frontend/src/components/GoogleSignInButton.js
+//_SWIZZLE_FILE_PATH_frontend/src/components/GoogleSignInButton.tsx
 import React from 'react';
 import { useAuth } from 'react-auth-kit';
 import { GoogleLogin } from 'react-google-login';

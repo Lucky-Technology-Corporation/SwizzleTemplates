@@ -1,6 +1,9 @@
-//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.sms.request.js
-const { createUser, optionalAuthentication } = require('swizzle-js');
-var telnyx = new Telnyx(process.env.TELNYX_KEY);
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.sms.request.ts
+import express, { Response } from "express";
+import { createUser, optionalAuthentication, AuthenticatedRequest } from "swizzle-js";
+import telnyx from 'telnyx';
+const telnyx = new Telnyx(process.env.TELNYX_KEY);
+const router = express.Router();
 
 /*
     Request:
@@ -14,10 +17,10 @@ var telnyx = new Telnyx(process.env.TELNYX_KEY);
         message: '<status message>'
     }
 */
-router.post('/auth/sms/request', optionalAuthentication, async (request, result) => {
+router.post('/auth/sms/request', optionalAuthentication, async (request: AuthenticatedRequest, response: Response) => {
     try{
         if(request.user){
-            return result.status(400).send({error: "Already logged in!"});
+            return response.status(400).send({error: "Already logged in!"});
         }
 
         const phoneNumber = request.body.phoneNumber;
@@ -36,15 +39,16 @@ router.post('/auth/sms/request', optionalAuthentication, async (request, result)
             text: `{{"Message text"}}: ${verificationCode}`
         });
         
-        return result.status(200).json({ message: 'Verification code sent' });
+        return response.status(200).json({ message: 'Verification code sent' });
     } catch (err) {
         console.error(err.message);
-        result.status(500).send({error: "Couldn't send verification code"});
+        response.status(500).send({error: "Couldn't send verification code"});
     }
 });
-//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.sms.confirm.js
-const { searchUsers, optionalAuthentication, signTokens } = require('swizzle-js');
-const jwt = require('jsonwebtoken');
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.sms.confirm.ts
+import express, { Response } from "express";
+import { editUser, searchUsers, optionalAuthentication, signTokens, AuthenticatedRequest } from "swizzle-js";
+const router = express.Router();
 
 /*
     POST /auth/sms/confirm
@@ -60,16 +64,16 @@ const jwt = require('jsonwebtoken');
         refreshToken: '<token>'
     }
 */
-router.post('/auth/sms/confirm', optionalAuthentication, async (request, result) => {
+router.post('/auth/sms/confirm', optionalAuthentication, async (request: AuthenticatedRequest, response: Response) => {
     try{
         const userSearch = searchUsers({phoneNumber: request.body.phone_number, verificationCode: request.body.code})
         if(userSearch.length === 0) {
-            return result.status(400).json({ error: 'Invalid code.' });
+            return response.status(400).json({ error: 'Invalid code.' });
         }
 
         const pendingUser = userSearch[0]
         if(pendingUser._deactivated){
-            return result.status(401).json({ error: 'User deactivated.' });
+            return response.status(401).json({ error: 'User deactivated.' });
         }
         
         const updatedUser = await editUser(pendingUser, { verificationCode: null, isAnonymous: false, updatedAt: new Date() }, request)
@@ -77,9 +81,9 @@ router.post('/auth/sms/confirm', optionalAuthentication, async (request, result)
 
         const { accessToken, refreshToken } = signTokens(userId, '{{"Token expiry"}}');
         
-        return result.status(200).json({ userId: userId, accessToken, refreshToken });
+        return response.status(200).json({ userId: userId, accessToken, refreshToken });
     } catch (err) {
         console.error(err.message);
-        result.status(500).send({error: "Couldn't confirm your phone number"});
+        response.status(500).send({error: "Couldn't confirm your phone number"});
     }
 });

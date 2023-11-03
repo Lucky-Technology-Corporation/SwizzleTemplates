@@ -1,5 +1,7 @@
-//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.anonymous.js
-const { searchUsers, createUser, optionalAuthentication, signTokens } = require('swizzle-js');
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.anonymous.ts
+import express, { Response } from "express";
+import { AuthenticatedRequest, createUser, optionalAuthentication, searchUsers, signTokens } from "swizzle-js";
+const router = express.Router();
 
 /*
     Request:
@@ -15,15 +17,15 @@ const { searchUsers, createUser, optionalAuthentication, signTokens } = require(
         refreshToken: '<token>'
     }
 */
-router.post('/auth/anonymous', optionalAuthentication, async (request, result) => {
+router.post('/auth/anonymous', optionalAuthentication, async (request: AuthenticatedRequest, response: Response) => {
     
     const { deviceId } = request.body;
     if (!deviceId) {
-        return result.status(400).send({ error: 'Device id is required' });
+        return response.status(400).send({ error: 'Device id is required' });
     }
 
     if(request.user){
-        return result.status(400).send({error: "Already logged in!"});
+        return response.status(400).send({error: "Already logged in!"});
     } 
 
     var userId;
@@ -38,5 +40,5 @@ router.post('/auth/anonymous', optionalAuthentication, async (request, result) =
 
     const { accessToken, refreshToken } = signTokens(userId, '{{"Token expiry"}}');
 
-    return result.json({ userId: userId, accessToken: accessToken, refreshToken: refreshToken });
+    return response.json({ userId: userId, accessToken: accessToken, refreshToken: refreshToken });
 });
