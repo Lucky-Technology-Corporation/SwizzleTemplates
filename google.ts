@@ -45,21 +45,23 @@ router.post('/auth/google', optionalAuthentication, async (request: Authenticate
         userId = newUser.userId
     }
     
-    const { accessToken, refreshToken } = signTokens(userId, '{{"Token expiry"}}');
+    const { accessToken, refreshToken } = signTokens(userId, {{"Token expiry"}});
 
     response.status(200).json({ userId: userId, accessToken, refreshToken });
   } catch (error) {
     response.status(401).json({ error: error });
   }
 });
+
+module.exports = router;
 //_SWIZZLE_FILE_PATH_frontend/src/components/GoogleSignInButton.tsx
 import React from 'react';
-import { useAuth } from 'react-auth-kit';
+import { useSignIn } from 'react-auth-kit';
 import { GoogleLogin } from 'react-google-login';
 import api from '../Api'; // Adjust the path accordingly
 
 function GoogleSignInButton() {
-  const { signIn } = useAuth();
+  const signIn = useSignIn();
 
   const handleGoogleSuccess = async (response) => {
     try {
@@ -70,7 +72,7 @@ function GoogleSignInButton() {
         refreshToken: data.refreshToken,
         expiresIn: {{"Token expiry"}}*60,
         tokenType: "Bearer",
-        userId: data.userId,
+        authState: { userId: data.userId },
       });
     } catch (error) {
       console.error('Error during Google Sign-In:', error);
