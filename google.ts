@@ -31,7 +31,7 @@ router.post('/auth/google', optionalAuthentication, async (request: Authenticate
     const payload = ticket.getPayload() || {};
     const googleUserId = payload['sub'];
     
-    const userIfGoogleIdExists = searchUsers({ googleUserId: googleUserId })
+    const userIfGoogleIdExists = await searchUsers({ googleUserId: googleUserId })
     
     if(userIfGoogleIdExists.length > 0){
         userId = userIfGoogleIdExists[0].userId
