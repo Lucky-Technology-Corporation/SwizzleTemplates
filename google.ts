@@ -57,8 +57,10 @@ module.exports = router;
 //_SWIZZLE_FILE_PATH_frontend/src/components/GoogleSignInButton.tsx
 import React from 'react';
 import { useSignIn } from 'react-auth-kit';
-import { GoogleLogin } from 'react-google-login';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import api from '../Api'; // Adjust the path accordingly
+
+const clientId = '{{"Google Client ID"}}';
 
 function GoogleSignInButton() {
   const signIn = useSignIn();
@@ -79,18 +81,18 @@ function GoogleSignInButton() {
     }
   };
 
-  const handleGoogleFailure = (response) => {
-    console.error('Google Sign-In failed:', response);
-  };
-
   return (
-    <GoogleLogin
-      clientId={'{{"Google Client ID"}}'} // Replace with your Google Client ID
-      buttonText="Login with Google"
-      onSuccess={handleGoogleSuccess}
-      onFailure={handleGoogleFailure}
-      cookiePolicy={'single_host_origin'}
-    />
+    <GoogleOAuthProvider clientId={clientId}>
+        <GoogleLogin
+            onSuccess={credentialResponse => {
+                handleGoogleSuccess(credentialResponse);    
+                console.log(credentialResponse);
+            }}
+            onError={() => {
+                console.log('Login Failed');
+            }}
+        />
+    </GoogleOAuthProvider>
   );
 }
 
