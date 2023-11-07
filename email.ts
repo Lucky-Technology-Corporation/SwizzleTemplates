@@ -91,7 +91,7 @@ router.post('/auth/email/login', optionalAuthentication, async (request: Authent
     }
     
     const { accessToken, refreshToken } = await signTokens(pendingUser.userId, {{"Token expiry"}});
-    response.status(200).json({ userId, accessToken, refreshToken });
+    response.status(200).json({ userId: pendingUser.userId, accessToken, refreshToken });
   } catch (error) {
     response.status(401).json({ error: error });
   }
