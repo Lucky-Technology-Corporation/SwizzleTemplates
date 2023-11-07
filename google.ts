@@ -2,7 +2,8 @@
 import { OAuth2Client } from 'google-auth-library';
 import express, { Response } from "express";
 import { searchUsers, createUser, signTokens, optionalAuthentication, AuthenticatedRequest } from "swizzle-js";
-const client = new OAuth2Client('{{"Google Client ID"}}');
+const googleClientId = '{{"Google Client ID"}}'
+const client = new OAuth2Client(googleClientId);
 const router = express.Router();
 
 /*
@@ -24,7 +25,7 @@ router.post('/auth/google', optionalAuthentication, async (request: Authenticate
   try {
     const ticket = await client.verifyIdToken({
         idToken: token,
-        audience: '{{"Google Client ID"}}',
+        audience: googleClientId,
     });
 
     var userId;
@@ -67,7 +68,7 @@ function GoogleSignInButton() {
 
   const handleGoogleSuccess = async (response) => {
     try {
-      const { data } = await api.post('/auth/google', { tokenId: response.tokenId });
+      const { data } = await api.post('/auth/google', { tokenId: response.credential });
       
       signIn({
         token: data.accessToken,
