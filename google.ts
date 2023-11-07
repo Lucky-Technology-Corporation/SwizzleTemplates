@@ -37,20 +37,16 @@ router.post('/auth/google', optionalAuthentication, async (request: Authenticate
     if(userIfGoogleIdExists.length > 0){
         userId = userIfGoogleIdExists[0].userId
     } else{
-        //Add additional properties to the user object here if needed
-        //Properties are available under the payload object (e.g. payload['email']) 
-        //Make sure you request the correct scopes from Google
-
-        const newUserObject = { googleUserId: googleUserId, email: payload['email'] }
+        const newUserObject = { googleUserId: googleUserId, email: payload['email'], authMethod: 'google' }
         const newUser = await createUser(newUserObject, request)
         userId = newUser.userId
     }
     
-    const { accessToken, refreshToken } = signTokens(userId, {{"Token expiry"}});
+    const { accessToken, refreshToken } = await signTokens(userId, {{"Token expiry"}});
 
-    response.status(200).json({ userId: userId, accessToken, refreshToken });
+    response.status(200).json({ userId, accessToken, refreshToken });
   } catch (error) {
-    response.status(401).json({ error: error });
+    response.status(401).json({ error });
   }
 });
 
@@ -87,7 +83,6 @@ function GoogleSignInButton() {
         <GoogleLogin
             onSuccess={credentialResponse => {
                 handleGoogleSuccess(credentialResponse);    
-                console.log(credentialResponse);
             }}
             onError={() => {
                 console.log('Login Failed');

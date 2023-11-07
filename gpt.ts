@@ -1,55 +1,149 @@
 //_SWIZZLE_FILE_PATH_backend/user-dependencies/post.gpt.chat.ts
-import express from 'express';
-const router = express.Router();
-import { optionalAuthentication, requiredAuthentication, db } from 'swizzle-js';
+import express, { Response } from "express";
+import { ObjectId } from 'mongodb';
 import { OpenAI } from 'openai';
-const ObjectId = require('mongodb').ObjectId; 
+import { AuthenticatedRequest, db, optionalAuthentication } from 'swizzle-js';
+const router = express.Router();
+const openai = new OpenAI({});
 
-
-const openai = new OpenAI({
- // Make sure you add the OPENAI_API_KEY Secret with your api key!
-});
-
-router.post('/send', optionalAuthentication, async (request, response) => {
+router.post('/send', optionalAuthentication, async (request: AuthenticatedRequest, response: Response) => {
     if(!request.body || !request.body.message){
         return response.status(400).json({error: 'Missing message'});
     }
 
     const message = request.body.message
-    const userId = request.user?.userId ?? 'guest';
-    
-    let conversationId = request.body.conversationId;
+    const userId = request.user?.userId ?? undefined;
+    var conversationId = request.body.conversationId;
+
     let conversation;
-    if(conversationId){
+
+    if(conversationId){ //Get existing conversation, if it exists
         conversation = await db.collection('conversations').findOne({ _id: new ObjectId(conversationId), userId});
     }
-    if(!conversation){
-        // create a new conversation
+
+    if(!conversation){ //Create new conversation, if it doesn't exist
         conversation = {userId, messages:[]};
-        inserted = await db.collection('conversations').insertOne(conversation);
+        const inserted = await db.collection('conversations').insertOne(conversation);
         conversationId = inserted.insertedId
     }
-    conversation.messages.push({ role: 'user', content: message});
-    
+
+    conversation.messages.push({ role: 'user', content: message}); //Add user message to conversation
     
     const stream = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: conversation.messages,
         stream: true,
     });
+
     response.setHeader("Transfer-Encoding", "chunked");
     response.setHeader("Content-Type", "text/plain");
-    // Allow frontend to read Conversation-Id headers:
     response.setHeader("Access-Control-Expose-Headers","Conversation-Id")
     response.setHeader("Conversation-Id", conversationId);
+
+    //Send the response to the user as it comes in
     let answer = ''
     for await (const part of stream) {
         response.write(part.choices[0]?.delta?.content || '')
         answer += part.choices[0]?.delta?.content || ''
     }
+
+    //Add the assistant's response to the conversation
     conversation.messages.push({ role: 'assistant', content: answer});
-    db.collection('conversations').updateOne({_id: conversationId}, {$set: conversation});
-    response.end();
+    //Update the conversation in the database
+    await db.collection('conversations').updateOne({_id: conversationId}, {$set: conversation});
+    //End the response
+    return response.end();
 });
 
 module.exports = router;
+
+//_SWIZZLE_FILE_PATH_frontend/src/components/Chat.tsx
+import { useEffect, useRef, useState } from 'react';
+import './App.css';
+
+function Chat() {
+  const [messages, setMessages] = useState([]);
+  const [isAnswering, setIsAnswering] = useState(false);
+  const [prompt, setPrompt] = useState('');
+  const [conversationId, setConversationId] = useState(undefined);
+  const afterLastMessageRef = useRef(undefined);
+
+  useEffect(()=>{
+    if(afterLastMessageRef.current){
+        afterLastMessageRef.current.scrollIntoView({ behavior: "smooth", block: "end"});
+    }
+  },[messages])
+
+  const sendMessage = async ()=>{
+    setIsAnswering(true);
+    setPrompt('');
+    setMessages(messages => messages.concat(
+        {
+            role: 'User',
+            content: prompt,
+        }, 
+        {
+            role: 'Assistant',
+            content: '',
+        }
+    ));
+    const response = await fetch("https://api.twitchtest-fe61afe0.swizzle-test-internal.com/send", {
+        method: "post",
+        body: JSON.stringify({ message: prompt, conversationId }),
+        headers: {
+        Accept: "application/json, text/plain, */*",
+        "Content-Type": "application/json",
+        }
+    });
+    if (!response.ok || !response.body) {
+        setIsAnswering(false);
+        throw response.statusText;
+    }
+    console.log(response.headers)
+    setConversationId(response.headers.get("Conversation-Id"));
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    const loopRunner = true;
+    while (loopRunner) {
+        // Loop over the response stream to get the data as fast as possible and with the typewriter effect like chatgpt
+        const { value, done } = await reader.read();
+        if (done) {
+            console.log(response.headers)
+        break;
+        }
+        const decodedChunk = decoder.decode(value, { stream: true });
+        // Change the content of the last message to itself + new text
+        setMessages(messages => [...messages.slice(0,-1), {...messages.slice(-1)[0], content: messages.slice(-1)[0].content + decodedChunk}]); 
+    }
+    setIsAnswering(false);
+  }
+
+  return (
+    <div className='chat-container'>{
+        messages.map((message, i) => (
+            <div key={i} className='chat-message-container'>
+                <span className='chat-message-role'>{message.role}</span>
+                <hr/>
+                <p className='chat-message'>{message.content}</p>
+            </div>
+        ))
+        <div ref={afterLastMessageRef}></div>
+    </div>
+    <div className='send-message-container'>
+    <input className='chat-input' 
+        onKeyDown={e => {
+            if(e.key === "Enter"){
+                e.preventDefault();
+                sendMessage();
+            }
+        }}
+    value={prompt}
+    onChange={e=>setPrompt(e.target.value)} type="text" />
+    
+    <button disabled={isAnswering} className='send-button' onClick={sendMessage}>Send</button>
+
+     </div>
+  );
+}
+
+export default Chat;
