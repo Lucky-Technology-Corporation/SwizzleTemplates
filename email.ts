@@ -1,7 +1,7 @@
 //_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.email.signup.ts
+import bcrypt from 'bcrypt';
 import express, { Response } from "express";
 import { AuthenticatedRequest, createUser, optionalAuthentication, searchUsers, signTokens } from "swizzle-js";
-import bcrypt from 'bcrypt'
 const router = express.Router();
 
 /*
@@ -21,8 +21,13 @@ const router = express.Router();
     }
 */
 router.post('/auth/email/signup', optionalAuthentication, async (request: AuthenticatedRequest, response: Response) => {
-  const email = request.body.email;
   try {
+    const email = request.body.email;
+    const password = request.body.password
+    if(!email || !password){
+        return response.status(400).json({ error: 'Email and password are required' });
+    }
+  
     var userId
     const emailUserExists = await searchUsers({ email: email })
     
@@ -32,7 +37,7 @@ router.post('/auth/email/signup', optionalAuthentication, async (request: Authen
     } 
 
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(request.body.password, salt);
+    const hashedPassword = await bcrypt.hash(password, salt);
     const newUserObject = { email: email, password: hashedPassword, ...request.body }
     const newUser = await createUser(newUserObject, request)
     userId = newUser.userId
@@ -41,15 +46,15 @@ router.post('/auth/email/signup', optionalAuthentication, async (request: Authen
 
     response.status(200).json({ userId: userId, accessToken, refreshToken });
   } catch (error) {
-    response.status(401).json({ error: error });
+    response.status(500).json({ error: error });
   }
 });
 
 module.exports = router;
 //_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.email.login.ts
+import bcrypt from 'bcrypt';
 import express, { Response } from "express";
-import { AuthenticatedRequest, createUser, optionalAuthentication, searchUsers, signTokens } from "swizzle-js";
-import bcrypt from 'bcrypt'
+import { AuthenticatedRequest, optionalAuthentication, searchUsers, signTokens } from "swizzle-js";
 const router = express.Router();
 
 /*
