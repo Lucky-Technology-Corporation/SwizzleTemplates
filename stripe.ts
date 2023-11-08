@@ -77,7 +77,7 @@ async function chargeCustomer(
 
     return paymentIntent;
 }
-module.exports = { createCustomer, saveCard, chargeCustomer }
+export { createCustomer, saveCard, chargeCustomer }
 //_SWIZZLE_FILE_PATH_frontend/src/components/StripeCheckout.tsx
 import React from 'react';
 import { loadStripe } from '@stripe/stripe-js';

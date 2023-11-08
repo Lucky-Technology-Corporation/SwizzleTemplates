@@ -50,7 +50,7 @@ router.post('/auth/email/signup', optionalAuthentication, async (request: Authen
   }
 });
 
-module.exports = router;
+export default router;
 //_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.email.login.ts
 import bcrypt from 'bcrypt';
 import express, { Response } from "express";
@@ -102,7 +102,7 @@ router.post('/auth/email/login', optionalAuthentication, async (request: Authent
   }
 });
 
-module.exports = router;
+export default router;
 //_SWIZZLE_FILE_PATH_frontend/src/components/EmailSignup.tsx
 import api from "../Api";
 import { useSignIn } from 'react-auth-kit'

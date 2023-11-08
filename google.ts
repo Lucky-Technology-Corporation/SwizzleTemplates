@@ -50,7 +50,7 @@ router.post('/auth/google', optionalAuthentication, async (request: Authenticate
   }
 });
 
-module.exports = router;
+export default router;
 //_SWIZZLE_FILE_PATH_frontend/src/components/GoogleSignInButton.tsx
 import React from 'react';
 import { useSignIn } from 'react-auth-kit';
