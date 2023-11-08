@@ -103,3 +103,123 @@ router.post('/auth/email/login', optionalAuthentication, async (request: Authent
 });
 
 module.exports = router;
+//_SWIZZLE_FILE_PATH_frontend/src/components/EmailSignup.tsx
+import api from "../Api";
+import { useSignIn } from 'react-auth-kit'
+import { useState } from "react";
+
+function EmailSignup() {
+    const signIn = useSignIn()
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    const handleSignup = async (event) => {
+        event.preventDefault();
+
+        try{
+            const { data } = await api.post('/auth/email/signup', { email, password })
+
+            signIn({
+                token: data.accessToken,
+                refreshToken: data.refreshToken,
+                expiresIn: {{"Token expiry"}}*60,
+                tokenType: "Bearer",
+                authState: { userId: data.userId },
+            });
+
+        } catch (error) {
+            console.error('Error during sign up:', error);
+        }
+    }
+
+    return (
+        <form onSubmit={handleSignup} className="flex flex-col items-center">
+            <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                required
+                className="px-4 py-2 rounded border border-gray-300"
+            />
+            <input
+                type="password"
+                id="password"
+                value={email}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+                className="px-4 py-2 rounded border border-gray-300"
+            />
+            <button
+                type="submit"
+                className="bg-indigo-700 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded mt-4"
+            >
+                Sign Up
+            </button>
+        </form>
+    )
+}
+
+export default EmailSignup;
+//_SWIZZLE_FILE_PATH_frontend/src/components/EmailLogin.tsx
+import api from "../Api";
+import { useSignIn } from 'react-auth-kit'
+import { useState } from "react";
+
+function EmailLogin() {
+    const signIn = useSignIn()
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    const handleLogin = async (event) => {
+        event.preventDefault();
+
+        try{
+            const { data } = await api.post('/auth/email/login', { email, password })
+
+            signIn({
+                token: data.accessToken,
+                refreshToken: data.refreshToken,
+                expiresIn: {{"Token expiry"}}*60,
+                tokenType: "Bearer",
+                authState: { userId: data.userId },
+            });
+
+        } catch (error) {
+            console.error('Error during login:', error);
+        }
+    }
+
+    return (
+        <form onSubmit={handleLogin} className="flex flex-col items-center">
+            <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                required
+                className="px-4 py-2 rounded border border-gray-300"
+            />
+            <input
+                type="password"
+                id="password"
+                value={email}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+                className="px-4 py-2 rounded border border-gray-300"
+            />
+            <button
+                type="submit"
+                className="bg-indigo-700 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded mt-4"
+            >
+                Login
+            </button>
+        </form>
+    )
+}
+
+export default EmailLogin;
