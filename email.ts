@@ -38,7 +38,7 @@ router.post('/auth/email/signup', optionalAuthentication, async (request: Authen
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    const newUserObject = { email: email, password: hashedPassword, ...request.body }
+    const newUserObject = { authMethod: "email", email: email, password: hashedPassword, ...request.body }
     const newUser = await createUser(newUserObject, request)
     userId = newUser.userId
     
