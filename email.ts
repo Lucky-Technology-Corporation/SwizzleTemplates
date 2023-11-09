@@ -115,6 +115,7 @@ function EmailSignup() {
     const signIn = useSignIn()
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [didSignUp, setDidSignUp] = useState(false);
 
     const handleSignup = async (event) => {
         event.preventDefault();
@@ -130,38 +131,44 @@ function EmailSignup() {
                 authState: { userId: data.userId },
             });
 
+            setDidSignUp(true)
+
         } catch (error) {
             console.error('Error during sign up:', error);
         }
     }
 
     return (
-        <form onSubmit={handleSignup} className="flex flex-col items-center">
-            <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                required
-                className="px-4 py-2 rounded border border-gray-300"
-            />
-            <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                required
-                className="px-4 py-2 rounded border border-gray-300"
-            />
-            <button
-                type="submit"
-                className="bg-indigo-700 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded mt-4"
-            >
-                Sign Up
-            </button>
-        </form>
+        didSignUp ? (
+            <div>Signup successful!</div>
+        ) : (
+            <form onSubmit={handleSignup} className="flex flex-col items-center">
+                <input
+                    type="email"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email"
+                    required
+                    className="px-4 py-2 rounded border border-gray-300"
+                />
+                <input
+                    type="password"
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password"
+                    required
+                    className="px-4 py-2 rounded border border-gray-300"
+                />
+                <button
+                    type="submit"
+                    className="bg-indigo-700 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded mt-4"
+                >
+                    Sign Up
+                </button>
+            </form>
+        )
     )
 }
 
