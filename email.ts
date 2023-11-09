@@ -146,7 +146,7 @@ function EmailSignup() {
             <input
                 type="password"
                 id="password"
-                value={email}
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
                 required
@@ -206,7 +206,7 @@ function EmailLogin() {
             <input
                 type="password"
                 id="password"
-                value={email}
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
                 required
