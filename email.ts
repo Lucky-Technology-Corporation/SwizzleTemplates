@@ -27,6 +27,9 @@ router.post('/auth/email/signup', optionalAuthentication, async (request: Authen
     if(!email || !password){
         return response.status(400).json({ error: 'Email and password are required' });
     }
+    var filteredRequestBody = request.body
+    delete filteredRequestBody.email
+    delete filteredRequestBody.password
   
     var userId
     const emailUserExists = await searchUsers({ email: email })
@@ -38,7 +41,7 @@ router.post('/auth/email/signup', optionalAuthentication, async (request: Authen
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    const newUserObject = { authMethod: "email", email: email, password: hashedPassword, ...request.body }
+    const newUserObject = { authMethod: "email", email: email, password: hashedPassword, ...filteredRequestBody }
     const newUser = await createUser(newUserObject, request)
     userId = newUser.userId
     
