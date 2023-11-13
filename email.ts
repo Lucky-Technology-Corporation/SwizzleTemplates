@@ -1,5 +1,5 @@
 //_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.email.signup.ts
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import express, { Response } from "express";
 import { AuthenticatedRequest, createUser, optionalAuthentication, searchUsers, signTokens } from "swizzle-js";
 const router = express.Router();
@@ -55,7 +55,7 @@ router.post('/auth/email/signup', optionalAuthentication, async (request: Authen
 
 export default router;
 //_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.email.login.ts
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import express, { Response } from "express";
 import { AuthenticatedRequest, optionalAuthentication, searchUsers, signTokens } from "swizzle-js";
 const router = express.Router();
