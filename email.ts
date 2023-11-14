@@ -113,17 +113,18 @@ import { useState } from "react";
 
 function EmailSignup() {
     const signIn = useSignIn()
-    const [email, setEmail] = useState('');
-    const [name, setName] = useState('');
-    const [password, setPassword] = useState('');
     const [didSignUp, setDidSignUp] = useState(false);
+
+    const [email, setEmail] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState('')
 
     const handleSignup = async (event) => {
         event.preventDefault();
 
         try{
-            const { data } = await api.post('/auth/email/signup', { email, password, name }) //Add any other values to save to this user here
+            const { data } = await api.post('/auth/email/signup', { email, password, fullName }) //Add any other values to save to this user here
 
             signIn({
                 token: data.accessToken,
@@ -145,12 +146,12 @@ function EmailSignup() {
         didSignUp ? (
             <div>Signup successful!</div>
         ) : (
-            <form onSubmit={handleSignup} className="flex flex-col items-center">
+            <form onSubmit={handleSignup} className="flex flex-col items-center space-y-1 mt-1">
                 <input
                     type="name"
                     id="name"
-                    value={email}
-                    onChange={(e) => setName(e.target.value)}
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
                     placeholder="Full Name"
                     required
                     className="px-4 py-2 rounded border border-gray-300"
@@ -218,7 +219,7 @@ function EmailLogin() {
     }
 
     return (
-        <form onSubmit={handleLogin} className="flex flex-col items-center">
+        <form onSubmit={handleLogin} className="flex flex-col items-center space-y-1 mt-1">
             <input
                 type="email"
                 id="email"
