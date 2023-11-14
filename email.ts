@@ -114,14 +114,16 @@ import { useState } from "react";
 function EmailSignup() {
     const signIn = useSignIn()
     const [email, setEmail] = useState('');
+    const [name, setName] = useState('');
     const [password, setPassword] = useState('');
     const [didSignUp, setDidSignUp] = useState(false);
+    const [error, setError] = useState('')
 
     const handleSignup = async (event) => {
         event.preventDefault();
 
         try{
-            const { data } = await api.post('/auth/email/signup', { email, password })
+            const { data } = await api.post('/auth/email/signup', { email, password, name }) //Add any other values to save to this user here
 
             signIn({
                 token: data.accessToken,
@@ -135,6 +137,7 @@ function EmailSignup() {
 
         } catch (error) {
             console.error('Error during sign up:', error);
+            setError(error.response.data.error)
         }
     }
 
@@ -143,6 +146,15 @@ function EmailSignup() {
             <div>Signup successful!</div>
         ) : (
             <form onSubmit={handleSignup} className="flex flex-col items-center">
+                <input
+                    type="name"
+                    id="name"
+                    value={email}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Full Name"
+                    required
+                    className="px-4 py-2 rounded border border-gray-300"
+                />
                 <input
                     type="email"
                     id="email"
@@ -161,6 +173,7 @@ function EmailSignup() {
                     required
                     className="px-4 py-2 rounded border border-gray-300"
                 />
+                <div className="text-red-400">{error}</div>
                 <button
                     type="submit"
                     className="bg-indigo-700 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded mt-4"
@@ -182,6 +195,7 @@ function EmailLogin() {
     const signIn = useSignIn()
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('')
 
     const handleLogin = async (event) => {
         event.preventDefault();
@@ -199,6 +213,7 @@ function EmailLogin() {
 
         } catch (error) {
             console.error('Error during login:', error);
+            setError(error.response.data.error)
         }
     }
 
@@ -222,6 +237,7 @@ function EmailLogin() {
                 required
                 className="px-4 py-2 rounded border border-gray-300"
             />
+            <div className="text-red-400">{error}</div>
             <button
                 type="submit"
                 className="bg-indigo-700 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded mt-4"
