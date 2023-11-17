@@ -2,7 +2,7 @@
 import { OAuth2Client } from 'google-auth-library';
 import express, { Response } from "express";
 import { searchUsers, createUser, signTokens, optionalAuthentication, AuthenticatedRequest } from "swizzle-js";
-const googleClientId = '{{"Google Client ID"}}'
+const googleClientId = '/*{{"Google Client ID"}}*/'
 const client = new OAuth2Client(googleClientId);
 const router = express.Router();
 
@@ -42,7 +42,7 @@ router.post('/auth/google', optionalAuthentication, async (request: Authenticate
         userId = newUser.userId
     }
     
-    const { accessToken, refreshToken } = await signTokens(userId, {{"Token expiry"}});
+    const { accessToken, refreshToken } = await signTokens(userId, /*{{"Token expiry"}}*/);
 
     response.status(200).json({ userId, accessToken, refreshToken });
   } catch (error) {
@@ -57,7 +57,7 @@ import { useSignIn } from 'react-auth-kit';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import api from '../Api'; // Adjust the path accordingly
 
-const clientId = '{{"Google Client ID"}}';
+const clientId = '/*{{"Google Client ID"}}*/';
 
 function GoogleSignInButton() {
   const signIn = useSignIn();
@@ -69,7 +69,7 @@ function GoogleSignInButton() {
       signIn({
         token: data.accessToken,
         refreshToken: data.refreshToken,
-        expiresIn: {{"Token expiry"}}*60,
+        expiresIn: /*{{"Token expiry"}}*/*60,
         tokenType: "Bearer",
         authState: { userId: data.userId },
       });

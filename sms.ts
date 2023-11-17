@@ -36,7 +36,7 @@ router.post('/auth/sms/request', optionalAuthentication, async (request: Authent
         await telnyx.messages.create({
             from: '+18887881468', 
             to: phoneNumber, 
-            text: `{{"Message text"}}: ${verificationCode}`
+            text: `/*{{"Message text"}}*/: ${verificationCode}`
         });
         
         return response.status(200).json({ message: 'Verification code sent' });
@@ -79,7 +79,7 @@ router.post('/auth/sms/confirm', optionalAuthentication, async (request: Authent
         const updatedUser = await editUser(pendingUser, { verificationCode: null, isAnonymous: false, updatedAt: new Date() }, request)
         const userId = updatedUser.userId;
 
-        const { accessToken, refreshToken } = signTokens(userId, '{{"Token expiry"}}');
+        const { accessToken, refreshToken } = signTokens(userId, /*{{"Token expiry"}}*/);
         
         return response.status(200).json({ userId: userId, accessToken, refreshToken });
     } catch (err) {

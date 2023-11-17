@@ -45,7 +45,7 @@ router.post('/auth/email/signup', optionalAuthentication, async (request: Authen
     const newUser = await createUser(newUserObject, request)
     userId = newUser.userId
     
-    const { accessToken, refreshToken } = await signTokens(userId, {{"Token expiry"}});
+    const { accessToken, refreshToken } = await signTokens(userId, /*{{"Token expiry"}}*/);
 
     response.status(200).json({ userId: userId, accessToken, refreshToken });
   } catch (error) {
@@ -98,7 +98,7 @@ router.post('/auth/email/login', optionalAuthentication, async (request: Authent
         return response.status(401).json({ error: 'Incorrect password' });
     }
     
-    const { accessToken, refreshToken } = await signTokens(pendingUser.userId, {{"Token expiry"}});
+    const { accessToken, refreshToken } = await signTokens(pendingUser.userId, /*{{"Token expiry"}}*/);
     response.status(200).json({ userId: pendingUser.userId, accessToken, refreshToken });
   } catch (error) {
     response.status(401).json({ error: error });
@@ -129,7 +129,7 @@ function EmailSignup() {
             signIn({
                 token: data.accessToken,
                 refreshToken: data.refreshToken,
-                expiresIn: {{"Token expiry"}}*60,
+                expiresIn: /*{{"Token expiry"}}*/*60,
                 tokenType: "Bearer",
                 authState: { userId: data.userId },
             });
@@ -207,7 +207,7 @@ function EmailLogin() {
             signIn({
                 token: data.accessToken,
                 refreshToken: data.refreshToken,
-                expiresIn: {{"Token expiry"}}*60,
+                expiresIn: /*{{"Token expiry"}}*/*60,
                 tokenType: "Bearer",
                 authState: { userId: data.userId },
             });

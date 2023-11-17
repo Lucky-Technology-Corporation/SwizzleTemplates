@@ -4,7 +4,7 @@ import { ObjectId } from 'mongodb';
 import { OpenAI } from 'openai';
 import { AuthenticatedRequest, db, optionalAuthentication } from 'swizzle-js';
 const router = express.Router();
-const openai = new OpenAI({});
+const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 
 router.post('/send', optionalAuthentication, async (request: AuthenticatedRequest, response: Response) => {
     if(!request.body || !request.body.message){
@@ -55,95 +55,96 @@ router.post('/send', optionalAuthentication, async (request: AuthenticatedReques
     return response.end();
 });
 
-module.exports = router;
-
+export default router;
 //_SWIZZLE_FILE_PATH_frontend/src/components/Chat.tsx
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
 
 function Chat() {
-  const [messages, setMessages] = useState([]);
-  const [isAnswering, setIsAnswering] = useState(false);
-  const [prompt, setPrompt] = useState('');
-  const [conversationId, setConversationId] = useState(undefined);
-  const afterLastMessageRef = useRef(undefined);
-
-  useEffect(()=>{
-    if(afterLastMessageRef.current){
-        afterLastMessageRef.current.scrollIntoView({ behavior: "smooth", block: "end"});
+    const [messages, setMessages] = useState([]);
+    const [isAnswering, setIsAnswering] = useState(false);
+    const [prompt, setPrompt] = useState('');
+    const [conversationId, setConversationId] = useState(undefined);
+    const afterLastMessageRef = useRef(undefined);
+  
+    useEffect(()=>{
+      if(afterLastMessageRef.current){
+          afterLastMessageRef.current.scrollIntoView({ behavior: "smooth", block: "end"});
+      }
+    },[messages])
+  
+    const sendMessage = async ()=>{
+      setIsAnswering(true);
+      setPrompt('');
+      setMessages(messages => messages.concat(
+          {
+              role: 'User',
+              content: prompt,
+          }, 
+          {
+              role: 'Assistant',
+              content: '',
+          }
+      ));
+      const response = await fetch('https://api.' + window.location.hostname + '/send', {
+          method: "post",
+          body: JSON.stringify({ message: prompt, conversationId }),
+          headers: {
+          Accept: "application/json, text/plain, */*",
+          "Content-Type": "application/json",
+          }
+      });
+      if (!response.ok || !response.body) {
+          setIsAnswering(false);
+          throw response.statusText;
+      }
+      console.log(response.headers)
+      setConversationId(response.headers.get("Conversation-Id"));
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      const loopRunner = true;
+      while (loopRunner) {
+          // Loop over the response stream to get the data as fast as possible and with the typewriter effect like chatgpt
+          const { value, done } = await reader.read();
+          if (done) {
+              console.log(response.headers)
+          break;
+          }
+          const decodedChunk = decoder.decode(value, { stream: true });
+          // Change the content of the last message to itself + new text
+          setMessages(messages => [...messages.slice(0,-1), {...messages.slice(-1)[0], content: messages.slice(-1)[0].content + decodedChunk}]); 
+      }
+      setIsAnswering(false);
     }
-  },[messages])
+  
+    return (
+    <>
+        <div className='chat-container w-full px-2'>
+            {messages.map((message, i) => (
+                <div key={i} className='chat-message-container mb-1'>
+                    <span className='chat-message-role text-xs text-gray-600'>{message.role}:</span>
+                    <p className='chat-message'>{message.content}</p>
+                </div>
+            ))}
+            <div className="h-12" ref={afterLastMessageRef}>&nbsp;</div>
+        </div>
 
-  const sendMessage = async ()=>{
-    setIsAnswering(true);
-    setPrompt('');
-    setMessages(messages => messages.concat(
-        {
-            role: 'User',
-            content: prompt,
-        }, 
-        {
-            role: 'Assistant',
-            content: '',
-        }
-    ));
-    const response = await fetch("https://api.twitchtest-fe61afe0.swizzle-test-internal.com/send", {
-        method: "post",
-        body: JSON.stringify({ message: prompt, conversationId }),
-        headers: {
-        Accept: "application/json, text/plain, */*",
-        "Content-Type": "application/json",
-        }
-    });
-    if (!response.ok || !response.body) {
-        setIsAnswering(false);
-        throw response.statusText;
-    }
-    console.log(response.headers)
-    setConversationId(response.headers.get("Conversation-Id"));
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    const loopRunner = true;
-    while (loopRunner) {
-        // Loop over the response stream to get the data as fast as possible and with the typewriter effect like chatgpt
-        const { value, done } = await reader.read();
-        if (done) {
-            console.log(response.headers)
-        break;
-        }
-        const decodedChunk = decoder.decode(value, { stream: true });
-        // Change the content of the last message to itself + new text
-        setMessages(messages => [...messages.slice(0,-1), {...messages.slice(-1)[0], content: messages.slice(-1)[0].content + decodedChunk}]); 
-    }
-    setIsAnswering(false);
-  }
-
-  return (
-    <div className='chat-container'>{
-        messages.map((message, i) => (
-            <div key={i} className='chat-message-container'>
-                <span className='chat-message-role'>{message.role}</span>
-                <hr/>
-                <p className='chat-message'>{message.content}</p>
-            </div>
-        ))
-        <div ref={afterLastMessageRef}></div>
-    </div>
-    <div className='send-message-container'>
-    <input className='chat-input' 
-        onKeyDown={e => {
-            if(e.key === "Enter"){
-                e.preventDefault();
-                sendMessage();
-            }
-        }}
-    value={prompt}
-    onChange={e=>setPrompt(e.target.value)} type="text" />
-    
-    <button disabled={isAnswering} className='send-button' onClick={sendMessage}>Send</button>
-
-     </div>
-  );
+        <div className='send-message-container w-full flex px-2 mt-auto mb-2 fixed bottom-0'>
+            <input className='chat-input flex-grow border rounded' 
+                onKeyDown={e => {
+                    if(e.key === "Enter"){
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                }}
+                value={prompt}
+                onChange={e=>setPrompt(e.target.value)} type="text" 
+            />
+            
+            <button disabled={isAnswering} className='send-button ml-2 border rounded p-2 bg-gray-200' onClick={sendMessage}>Send</button>
+        </div>
+    </>
+    );
 }
-
+  
 export default Chat;

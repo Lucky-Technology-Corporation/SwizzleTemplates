@@ -38,7 +38,7 @@ router.post('/auth/anonymous', optionalAuthentication, async (request: Authentic
         userId = user.userId
     }
 
-    const { accessToken, refreshToken } = signTokens(userId, '{{"Token expiry"}}');
+    const { accessToken, refreshToken } = signTokens(userId, /*{{"Token expiry"}}*/);
 
     return response.json({ userId: userId, accessToken: accessToken, refreshToken: refreshToken });
 });

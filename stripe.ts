@@ -88,7 +88,7 @@ import {
   useElements,
 } from '@stripe/react-stripe-js';
 
-const stripePromise = loadStripe('{{"Stripe public key"}}'); // Use your Stripe public key
+const stripePromise = loadStripe('/*{{"Stripe public key"}}*/'); // Use your Stripe public key
 
 const CheckoutForm = () => {
   const stripe = useStripe();
