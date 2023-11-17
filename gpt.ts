@@ -6,7 +6,7 @@ import { AuthenticatedRequest, db, optionalAuthentication } from 'swizzle-js';
 const router = express.Router();
 const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 
-router.post('/send', optionalAuthentication, async (request: AuthenticatedRequest, response: Response) => {
+router.post('/gpt/chat', optionalAuthentication, async (request: AuthenticatedRequest, response: Response) => {
     if(!request.body || !request.body.message){
         return response.status(400).json({error: 'Missing message'});
     }
@@ -86,7 +86,7 @@ function Chat() {
               content: '',
           }
       ));
-      const response = await fetch('https://api.' + window.location.hostname + '/send', {
+      const response = await fetch('https://api.' + window.location.hostname + '/gpt/chat', {
           method: "post",
           body: JSON.stringify({ message: prompt, conversationId }),
           headers: {
