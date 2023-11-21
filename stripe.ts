@@ -29,13 +29,12 @@ async function createCustomer(
 //Saves a card to a customer without charging it
 async function saveCard(
     swizzleUid: string,
-    stripeCustomerId: string,
     paymentMethodId: string
 ){
     //Get the customer id
-    const safeCustomerId = stripeCustomerId ? stripeCustomerId : (await searchUsers({userId: swizzleUid}))[0].stripeCustomerId
+    const safeCustomerId = (await searchUsers({userId: swizzleUid}))[0].stripeCustomerId
     if(!safeCustomerId){
-        throw new Error("No customer found")
+        await createCustomer(swizzleUid)
     }
 
     //Attach the payment method to the customer
