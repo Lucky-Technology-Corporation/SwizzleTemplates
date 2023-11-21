@@ -58,25 +58,33 @@ router.post('/gpt/chat', optionalAuthentication, async (request: AuthenticatedRe
 export default router;
 //_SWIZZLE_FILE_PATH_frontend/src/components/Chat.tsx
 import { useEffect, useRef, useState } from 'react';
-import './App.css';
+import { stream } from '../Api';
 
 function Chat() {
     const [messages, setMessages] = useState([]);
+    const [streamingMessage, setStreamingMessage] = useState("")
+
     const [isAnswering, setIsAnswering] = useState(false);
     const [prompt, setPrompt] = useState('');
     const [conversationId, setConversationId] = useState(undefined);
     const afterLastMessageRef = useRef(undefined);
   
+    // Scroll the page as new messages and letters stream in
     useEffect(()=>{
       if(afterLastMessageRef.current){
           afterLastMessageRef.current.scrollIntoView({ behavior: "smooth", block: "end"});
       }
-    },[messages])
+    }, [messages, streamingMessage])
   
     const sendMessage = async ()=>{
-      setIsAnswering(true);
-      setPrompt('');
-      setMessages(messages => messages.concat(
+        //If there's a streamed message, save that to the message history state
+        if(streamingMessage !== ""){
+            setMessages(messages => [...messages.slice(0,-1),  {...messages.slice(-1)[0], content: streamingMessage}])
+            setStreamingMessage("")
+        }
+
+        //Add the new prompt to the message history state
+        setMessages(messages => messages.concat(
           {
               role: 'User',
               content: prompt,
@@ -85,36 +93,14 @@ function Chat() {
               role: 'Assistant',
               content: '',
           }
-      ));
-      const response = await fetch('https://api.' + window.location.hostname + '/gpt/chat', {
-          method: "post",
-          body: JSON.stringify({ message: prompt, conversationId }),
-          headers: {
-          Accept: "application/json, text/plain, */*",
-          "Content-Type": "application/json",
-          }
-      });
-      if (!response.ok || !response.body) {
-          setIsAnswering(false);
-          throw response.statusText;
-      }
-      console.log(response.headers)
-      setConversationId(response.headers.get("Conversation-Id"));
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      const loopRunner = true;
-      while (loopRunner) {
-          // Loop over the response stream to get the data as fast as possible and with the typewriter effect like chatgpt
-          const { value, done } = await reader.read();
-          if (done) {
-              console.log(response.headers)
-          break;
-          }
-          const decodedChunk = decoder.decode(value, { stream: true });
-          // Change the content of the last message to itself + new text
-          setMessages(messages => [...messages.slice(0,-1), {...messages.slice(-1)[0], content: messages.slice(-1)[0].content + decodedChunk}]); 
-      }
-      setIsAnswering(false);
+        ));
+        setPrompt('');
+        setIsAnswering(true);
+
+        //Stream the response into the streamingMessage state variable
+        const response = await stream.post("/gpt/chat", { message: prompt, conversationId }, setStreamingMessage);
+        setConversationId(response.headers.get("Conversation-Id"))
+        setIsAnswering(false);
     }
   
     return (
@@ -123,7 +109,7 @@ function Chat() {
             {messages.map((message, i) => (
                 <div key={i} className='chat-message-container mb-1'>
                     <span className='chat-message-role text-xs text-gray-600'>{message.role}:</span>
-                    <p className='chat-message'>{message.content}</p>
+                    <p className='chat-message'>{(i === messages.length - 1) ? streamingMessage : message.content}</p>
                 </div>
             ))}
             <div className="h-12" ref={afterLastMessageRef}>&nbsp;</div>
