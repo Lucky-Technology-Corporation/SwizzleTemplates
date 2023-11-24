@@ -63,6 +63,7 @@ import { stream } from '../Api';
 function Chat() {
     const [messages, setMessages] = useState([]);
     const [streamingMessage, setStreamingMessage] = useState("")
+    const [isAnswering, setIsAnswering] = useState(false)
 
     const [prompt, setPrompt] = useState('');
     const [conversationId, setConversationId] = useState(undefined);
@@ -95,9 +96,11 @@ function Chat() {
         ));
         setPrompt('');
 
+        setIsAnswering(true);
         //Stream the response into the streamingMessage state variable
         const response = await stream.post("/gpt/chat", { message: prompt, conversationId }, setStreamingMessage);
         setConversationId(response.headers.get("Conversation-Id"))
+        setIsAnswering(false);
     }
   
     return (
