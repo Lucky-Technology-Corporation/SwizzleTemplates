@@ -35,7 +35,7 @@ router.post('/auth/eth', optionalAuthentication, async (request: AuthenticatedRe
         const originalMessage = 'Please sign this message for authentication. Nonce: [nonce]';
 
         // Recover the address from the signature
-        const recoveredAddress = ethers.utils.verifyMessage(originalMessage, signature);
+        const recoveredAddress = ethers.verifyMessage(originalMessage, signature);
 
         if (recoveredAddress.toLowerCase() === account.toLowerCase()) {
             const ethUserExists = await searchUsers({ ethAddress: recoveredAddress.toLowerCase() })

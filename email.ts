@@ -212,6 +212,10 @@ function EmailLogin() {
                 authState: { userId: data.userId },
             });
 
+            //Sign in was successful 
+            //Navigate to another page here!
+            //e.g. location.href = "/dashboard"
+
         } catch (error) {
             console.error('Error during login:', error);
             setError(error.response.data.error)
