@@ -64,7 +64,6 @@ function Chat() {
     const [messages, setMessages] = useState([]);
     const [streamingMessage, setStreamingMessage] = useState("")
 
-    const [isAnswering, setIsAnswering] = useState(false);
     const [prompt, setPrompt] = useState('');
     const [conversationId, setConversationId] = useState(undefined);
     const afterLastMessageRef = useRef(undefined);
@@ -86,21 +85,19 @@ function Chat() {
         //Add the new prompt to the message history state
         setMessages(messages => messages.concat(
           {
-              role: 'User',
+              role: 'user',
               content: prompt,
           }, 
           {
-              role: 'Assistant',
+              role: 'assistant',
               content: '',
           }
         ));
         setPrompt('');
-        setIsAnswering(true);
 
         //Stream the response into the streamingMessage state variable
         const response = await stream.post("/gpt/chat", { message: prompt, conversationId }, setStreamingMessage);
         setConversationId(response.headers.get("Conversation-Id"))
-        setIsAnswering(false);
     }
   
     return (
