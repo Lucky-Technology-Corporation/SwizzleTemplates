@@ -111,7 +111,7 @@ import api from "../Api";
 import { useSignIn } from 'react-auth-kit'
 import { useState } from "react";
 
-function EmailSignup() {
+function EmailSignup({successPage}: {successPage?: string}) {
     const signIn = useSignIn()
     const [didSignUp, setDidSignUp] = useState(false);
 
@@ -133,6 +133,10 @@ function EmailSignup() {
                 tokenType: "Bearer",
                 authState: { userId: data.userId },
             });
+
+            if(successPage){
+                window.location.href = successPage
+            }
 
             setDidSignUp(true)
 
@@ -192,7 +196,7 @@ import api from "../Api";
 import { useSignIn } from 'react-auth-kit'
 import { useState } from "react";
 
-function EmailLogin() {
+function EmailLogin({successPage}: {successPage?: string}) {
     const signIn = useSignIn()
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -212,9 +216,9 @@ function EmailLogin() {
                 authState: { userId: data.userId },
             });
 
-            //Sign in was successful 
-            //Navigate to another page here!
-            //e.g. location.href = "/dashboard"
+            if(successPage){
+                window.location.href = successPage
+            }
 
         } catch (error) {
             console.error('Error during login:', error);
