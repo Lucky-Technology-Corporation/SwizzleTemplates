@@ -142,6 +142,11 @@ function EmailSignup({successPage}: {successPage?: string}) {
 
         } catch (error) {
             console.error('Error during sign up:', error);
+            if(error.response == undefined){
+                console.error('Check if your backend is running. There may be an error preventing it from starting.');
+                setError("Error during signup")
+                return
+            }
             setError(error.response.data.error)
         }
     }
@@ -222,6 +227,11 @@ function EmailLogin({successPage}: {successPage?: string}) {
 
         } catch (error) {
             console.error('Error during login:', error);
+            if(error.response == undefined){
+                console.error('Check if your backend is running. There may be an error preventing it from starting.');
+                setError("Error during login")
+                return
+            }
             setError(error.response.data.error)
         }
     }
