@@ -87,7 +87,7 @@ router.post('/auth/email/login', optionalAuthentication, async (request: Authent
     const pendingUser = emailUserExists[0]
     
     //Check if the user is a Google user
-    const isEmailUser = pendingUser.authMethod == 'email'
+    const isEmailUser = pendingUser.authMethod === 'email'
     if(!isEmailUser){
         return response.status(400).json({ error: 'This email is connected to another authentication method' });
     }
@@ -142,7 +142,7 @@ function EmailSignup({successPage}: {successPage?: string}) {
 
         } catch (error) {
             console.error('Error during sign up:', error);
-            if(error.response == undefined){
+            if(error.response === undefined){
                 console.error('Check if your backend is running. There may be an error preventing it from starting.');
                 setError("Error during signup")
                 return
@@ -227,7 +227,7 @@ function EmailLogin({successPage}: {successPage?: string}) {
 
         } catch (error) {
             console.error('Error during login:', error);
-            if(error.response == undefined){
+            if(error.response === undefined){
                 console.error('Check if your backend is running. There may be an error preventing it from starting.');
                 setError("Error during login")
                 return
