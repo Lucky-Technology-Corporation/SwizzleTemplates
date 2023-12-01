@@ -55,12 +55,16 @@ export default router;
 import React from 'react';
 import { useSignIn } from 'react-auth-kit';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { useLocation, useNavigate, useNavigation } from "react-router-dom";
 import api from '../Api'; // Adjust the path accordingly
 
 const clientId = '/*{{"Google Client ID"}}*/';
 
-function GoogleSignInButton() {
+function GoogleSignInButton({successPage}: {successPage?: string}) {
   const signIn = useSignIn();
+
+  const location = useLocation();
+  const navigateTo = successPage || location.state?.from.pathname;
 
   const handleGoogleSuccess = async (response) => {
     try {
@@ -73,6 +77,11 @@ function GoogleSignInButton() {
         tokenType: "Bearer",
         authState: { userId: data.userId },
       });
+
+      if (navigateTo) {
+        window.location.href = navigateTo
+      }
+
     } catch (error) {
       console.error('Error during Google Sign-In:', error);
     }

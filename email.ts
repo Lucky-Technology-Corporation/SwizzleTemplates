@@ -110,6 +110,7 @@ export default router;
 import api from "../Api";
 import { useSignIn } from 'react-auth-kit'
 import { useState } from "react";
+import { useLocation, useNavigate, useNavigation } from "react-router-dom";
 
 function EmailSignup({successPage}: {successPage?: string}) {
     const signIn = useSignIn()
@@ -119,6 +120,9 @@ function EmailSignup({successPage}: {successPage?: string}) {
     const [fullName, setFullName] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('')
+
+    const location = useLocation();
+    const navigateTo = successPage || location.state?.from.pathname;
 
     const handleSignup = async (event) => {
         event.preventDefault();
@@ -134,8 +138,8 @@ function EmailSignup({successPage}: {successPage?: string}) {
                 authState: { userId: data.userId },
             });
 
-            if(successPage){
-                window.location.href = successPage
+            if (navigateTo) {
+                window.location.href = navigateTo
             }
 
             setDidSignUp(true)
@@ -200,12 +204,16 @@ export default EmailSignup;
 import api from "../Api";
 import { useSignIn } from 'react-auth-kit'
 import { useState } from "react";
+import { useLocation, useNavigate, useNavigation } from "react-router-dom";
 
 function EmailLogin({successPage}: {successPage?: string}) {
     const signIn = useSignIn()
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('')
+
+    const location = useLocation();
+    const navigateTo = successPage || location.state?.from.pathname;
 
     const handleLogin = async (event) => {
         event.preventDefault();
@@ -221,8 +229,8 @@ function EmailLogin({successPage}: {successPage?: string}) {
                 authState: { userId: data.userId },
             });
 
-            if(successPage){
-                window.location.href = successPage
+            if (navigateTo) {
+                window.location.href = navigateTo
             }
 
         } catch (error) {
