@@ -55,7 +55,7 @@ export default router;
 import React from 'react';
 import { useSignIn } from 'react-auth-kit';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import { useLocation, useNavigate, useNavigation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import api from '../Api'; // Adjust the path accordingly
 
 const clientId = '/*{{"Google Client ID"}}*/';
