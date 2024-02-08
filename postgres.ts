@@ -92,5 +92,13 @@ router.get('/postgres/tables', requiredAuthentication, async (request: Authentic
     return response.status(500).json({ error: 'Something went wrong' })
   }
 })
-
 export default router
+//_SWIZZLE_FILE_PATH_backend/helpers/getPostgresDB.ts
+
+import pg from 'pg'
+
+const pool = new pg.Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
+
+export default function getPostgresDB() {
+  return pool
+}
