@@ -77,6 +77,7 @@ function Chat() {
     }, [messages, streamingMessage])
   
     const sendMessage = async ()=>{
+        try{
         //If there's a streamed message, save that to the message history state
         if(streamingMessage !== ""){
             setMessages(messages => [...messages.slice(0,-1),  {...messages.slice(-1)[0], content: streamingMessage}])
@@ -101,6 +102,9 @@ function Chat() {
         const response = await stream.post("/gpt/chat", { message: prompt, conversationId }, setStreamingMessage);
         setConversationId(response.headers.get("Conversation-Id"))
         setIsAnswering(false);
+        } catch(e){
+            console.error(e);
+        }
     }
   
     return (
