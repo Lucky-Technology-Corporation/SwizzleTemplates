@@ -1,71 +1,10 @@
-//_SWIZZLE_FILE_PATH_backend/user-dependencies/stripe.setup_payment.ts
-import express, { Response } from 'express';
-import Stripe from 'stripe';
-import { AuthenticatedRequest, editUser, optionalAuthentication } from 'swizzle-js';
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.stripe.setup_card.ts
+import express, { Response } from 'express'
+import Stripe from 'stripe'
+import { AuthenticatedRequest, editUser, optionalAuthentication } from 'swizzle-js'
 const router = express.Router()
 
-router.post('/stripe/setup_payment', optionalAuthentication, async (request: AuthenticatedRequest, response: Response) => {
-  /* 
-  This endpoint is used to set up the checkout form on the frontend for a charge of any amount, defined below.
-  If the user is logged in, it will also save the payment method to their stripe account. 
-  */
-
-  //Replace amount and description with your own logic
-  const AMOUNT_TO_CHARGE = 2000
-  const CHARGE_DESCRIPTION = "Swizzle"
-
-  try {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-
-    var customerId;
-    if(request.user){
-      if(request.user.stripeCustomerId === undefined){
-        const customer = await stripe.customers.create({
-          email: request.user.email,
-          metadata: {
-            swizzle_user_id: request.user.userId,
-          }
-        })
-        await editUser({stripeCustomerId: customer.id})
-        customerId = customer.id
-      } else{
-        customerId = request.user.stripeCustomerId
-      }
-    }
-
-    var paymentIntentObject = {
-      amount: AMOUNT_TO_CHARGE,
-      currency: "usd",
-      statement_descriptor: CHARGE_DESCRIPTION,
-      automatic_payment_methods: {
-        enabled: true,
-      },
-      metadata: {
-        swizzle_user_id: request.user?.userId,
-      }
-    }
-
-    if(customerId){
-      paymentIntentObject["customer"] = customerId
-      paymentIntentObject["setup_future_usage"] = 'off_session'
-    }
-
-    const result = await stripe.paymentIntents.create(paymentIntentObject)
-    return response.json(result)
-  } catch (e) {
-    return response.status(500).json({ error: e.message })
-  }
-})
-
-export default router
-
-//_SWIZZLE_FILE_PATH_backend/user-dependencies/stripe.setup_subscription.ts
-import express, { Response } from 'express';
-import Stripe from 'stripe';
-import { AuthenticatedRequest, editUser, optionalAuthentication } from 'swizzle-js';
-const router = express.Router()
-
-router.post('/stripe/setup_future_payment', optionalAuthentication, async (request: AuthenticatedRequest, response: Response) => {
+router.post('/stripe/setup_card', optionalAuthentication, async (request: AuthenticatedRequest, response: Response) => {
   /* 
   This endpoint is used to set up the checkout form on the frontend for a charge of any amount, defined below.
   If the user is logged in, it will also save the payment method to their stripe account. 
@@ -76,18 +15,18 @@ router.post('/stripe/setup_future_payment', optionalAuthentication, async (reque
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
-    var customerId;
-    if(request.user){
-      if(request.user.stripeCustomerId === undefined){
+    var customerId
+    if (request.user) {
+      if (request.user.stripeCustomerId === undefined) {
         const customer = await stripe.customers.create({
           email: request.user.email,
           metadata: {
             swizzle_user_id: request.user.userId,
-          }
+          },
         })
-        await editUser({stripeCustomerId: customer.id})
+        await editUser(request.user, { stripeCustomerId: customer.id })
         customerId = customer.id
-      } else{
+      } else {
         customerId = request.user.stripeCustomerId
       }
     }
@@ -99,7 +38,8 @@ router.post('/stripe/setup_future_payment', optionalAuthentication, async (reque
       customer: customerId,
       metadata: {
         swizzle_user_id: request.user?.userId,
-      }
+        ...request.body.metadata,
+      },
     })
 
     return response.json(result)
@@ -109,51 +49,81 @@ router.post('/stripe/setup_future_payment', optionalAuthentication, async (reque
 })
 
 export default router
-
-//_SWIZZLE_FILE_PATH_backend/user-dependencies/stripe.webhook.ts
-import express, { Response } from 'express';
-import Stripe from 'stripe';
-import { AuthenticatedRequest, editUser, optionalAuthentication } from 'swizzle-js';
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.stripe.setup_payment.ts
+import express, { Response } from 'express'
+import Stripe from 'stripe'
+import { AuthenticatedRequest, editUser, optionalAuthentication } from 'swizzle-js'
 const router = express.Router()
 
-router.post('/stripe/webhook', optionalAuthentication, async (request: AuthenticatedRequest, response: Response) => {
-  /* 
-  This endpoint handles the stripe webhook. 
-  Add this endpoint to https://dashboard.stripe.com/test/webhooks to receive events.
-
-  You'll need to add logic to handle the different event types if you want to use this.
-  */
+router.post('/stripe/setup_payment', optionalAuthentication, async (request: AuthenticatedRequest, response: Response) => {
+  const AMOUNT_TO_CHARGE = 1000 // Changed to $10
+  const CHARGE_DESCRIPTION = 'Swizzle'
 
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-    const event = stripe.webhooks.constructEvent(request.body, request.headers['stripe-signature'], process.env.STRIPE_WEBHOOK_SECRET)
+
+    var customerId
+    if (request.user) {
+      if (!request.user.stripeCustomerId) {
+        const customer = await stripe.customers.create({
+          email: request.user.email,
+          metadata: {
+            swizzle_user_id: request.user.userId,
+          },
+        })
+        await editUser(request.user.userId, { stripeCustomerId: customer.id })
+        customerId = customer.id
+      } else {
+        customerId = request.user.stripeCustomerId
+      }
+    }
+
+    var paymentIntentObject = {
+      amount: AMOUNT_TO_CHARGE,
+      currency: 'usd',
+      statement_descriptor: CHARGE_DESCRIPTION,
+      automatic_payment_methods: {
+        enabled: true,
+      },
+      metadata: {
+        swizzle_user_id: request.user?.userId,
+        ...request.body.metadata,
+      },
+    }
+
+    if (customerId) {
+      paymentIntentObject['customer'] = customerId
+      paymentIntentObject['setup_future_usage'] = 'off_session'
+    }
+
+    const result = await stripe.paymentIntents.create(paymentIntentObject)
+    return response.json(result)
+  } catch (e) {
+    return response.status(500).json({ error: e.message })
+  }
+})
+
+export default router
+//_SWIZZLE_FILE_PATH_backend/user-dependencies/post.stripe.webhook.ts
+import express, { Response } from 'express'
+import Stripe from 'stripe'
+import { db } from 'swizzle-js'
+const router = express.Router()
+
+router.post('/stripe/webhook', express.raw({ type: 'application/json' }), async (request, response) => {
+  try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string)
+    const event = stripe.webhooks.constructEvent(request.body, request.headers['stripe-signature'] as string, process.env.STRIPE_WEBHOOK_SECRET as string)
 
     switch (event.type) {
       case 'payment_intent.succeeded':
-        const successfulCharge = event.data.object
+        const paymentIntent = event.data.object as Stripe.PaymentIntent
+        const email = paymentIntent.metadata.email
+        if (email) {
+          await db.collection('paidSignups').insertOne({ email, date: new Date() })
+        }
         break
-      case 'payment_intent.payment_failed':
-        const failedCharge = event.data.object
-        break
-      case 'customer.subscription.created':
-        const newSubscription = event.data.object
-        break
-      case 'customer.subscription.deleted':
-        const deletedSubscription = event.data.object
-        break
-      case 'customer.subscription.paused':
-        const pausedSubscription = event.data.object
-        break
-      case 'customer.subscription.resumed':
-        const resumedSubscription = event.data.object
-        break
-      case 'customer.subscription.updated':
-        const updatedSubscription = event.data.object
-        break
-      case 'refund.created':
-        const refundedCharge = event.data.object
-        break
-      // ... handle other event types if needed (https://docs.stripe.com/api/events/types)
+      // ... handle other event types if needed
       default:
         return response.status(400).json({ error: 'Unhandled event type' })
     }
@@ -164,17 +134,16 @@ router.post('/stripe/webhook', optionalAuthentication, async (request: Authentic
 })
 
 export default router
-
 //_SWIZZLE_FILE_PATH_frontend/src/components/StripePaymentForm.tsx
 import {
   Elements,
   PaymentElement,
   useElements,
-  useStripe
-} from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import { useEffect, useRef, useState } from 'react';
-import api from '../Api';
+  useStripe,
+} from '@stripe/react-stripe-js'
+import { loadStripe } from '@stripe/stripe-js'
+import { useEffect, useRef, useState } from 'react'
+import api from '../Api'
 
 /*
   Usage: <StripePaymentForm shouldCharge={boolean} onSuccess={() => {}} onSuccessRedirect="" /> 
@@ -190,7 +159,17 @@ import api from '../Api';
 
 const stripePromise = loadStripe(process.env.STRIPE_PUBLIC_KEY)
 
-const StripePaymentForm = ({shouldCharge, onSuccess, onSuccessRedirect}: {shouldCharge: boolean, onSuccess: () => void, onSuccessRedirect: string}) => {
+const StripePaymentForm = ({
+  shouldCharge,
+  onSuccess,
+  onSuccessRedirect,
+  metadata = {},
+}: {
+  shouldCharge: boolean
+  onSuccess: () => void
+  onSuccessRedirect: string
+  metadata?: object
+}) => {
   const [stripeSecretObject, setStripeSecretObject] = useState(null)
   const idempotentRef = useRef(false)
 
@@ -204,15 +183,14 @@ const StripePaymentForm = ({shouldCharge, onSuccess, onSuccessRedirect}: {should
     }
     idempotentRef.current = true
 
-    const url = shouldCharge ? '/stripe/setup_payment' : '/stripe/setup_future_payment'
+    const url = shouldCharge ? '/stripe/setup_payment' : '/stripe/setup_card'
 
-    api.post(shouldCharge).then((res) => {
+    api.post(url, { metadata }).then((res) => {
       setStripeSecretObject({
         clientSecret: res.data.client_secret,
         appearance: appearance,
       })
     })
-
   }, [])
 
   if (!stripeSecretObject) {
@@ -221,13 +199,24 @@ const StripePaymentForm = ({shouldCharge, onSuccess, onSuccessRedirect}: {should
 
   return (
     <Elements stripe={stripePromise} options={stripeSecretObject}>
-      <CheckoutForm shouldCharge={shouldCharge} onSuccess={onSuccess} onSuccessRedirect={onSuccessRedirect} />
+      <CheckoutForm
+        shouldCharge={shouldCharge}
+        onSuccess={onSuccess}
+        onSuccessRedirect={onSuccessRedirect}
+      />
     </Elements>
   )
 }
 
-
-const CheckoutForm = ({shouldCharge, onSuccess, onSuccessRedirect}: {shouldCharge: boolean, onSuccess: () => void, onSuccessRedirect: string}) => {
+const CheckoutForm = ({
+  shouldCharge,
+  onSuccess,
+  onSuccessRedirect,
+}: {
+  shouldCharge: boolean
+  onSuccess: () => void
+  onSuccessRedirect: string
+}) => {
   const stripe = useStripe()
   const elements = useElements()
   const [error, setError] = useState('')
@@ -236,22 +225,28 @@ const CheckoutForm = ({shouldCharge, onSuccess, onSuccessRedirect}: {shouldCharg
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    if (!stripe || !elements) { return }
+    if (!stripe || !elements) {
+      return
+    }
 
     try {
       setLoading(true)
+      var httpsUrl = onSuccessRedirect
+      if (!httpsUrl.startsWith('http')) {
+        httpsUrl = `https://${window.location.hostname}${httpsUrl}`
+      }
       const result = await stripe.confirmPayment({
         elements,
-        redirect: "if_required",
+        redirect: 'if_required',
         confirmParams: {
-          return_url: window.location.href.split("?")[0], // Redirect to the current page after payment
+          return_url: httpsUrl,
         },
       })
       setLoading(false)
 
-      if(result.error){
+      if (result.error) {
         setError(result.error.message)
-      } else{
+      } else {
         //Success!
         setSuccess(true)
         onSuccess()
@@ -272,14 +267,13 @@ const CheckoutForm = ({shouldCharge, onSuccess, onSuccessRedirect}: {shouldCharg
         disabled={!stripe || loading}
         className={`${(!stripe || loading) && 'opacity-70'} w-full bg-white mt-4 text-black font-semibold text-lg py-2 px-4 rounded-md shadow-md hover:shadow-lg`}
       >
-        {success ? "Success!" : (shouldCharge ? "Pay" : "Save")}
+        {success ? 'Success!' : shouldCharge ? 'Pay' : 'Save'}
       </button>
     </form>
   )
 }
 
 export default StripePaymentForm
-
 //_SWIZZLE_FILE_PATH_backend/helpers/stripe.ts
 import Stripe from 'stripe';
 import { searchUsers } from 'swizzle-js';

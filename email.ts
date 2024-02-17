@@ -55,9 +55,6 @@ router.post('/auth/email/signup', optionalAuthentication, async (request: Authen
 
 export default router;
 //_SWIZZLE_FILE_PATH_backend/user-dependencies/post.auth.email.login.ts
-import bcrypt from 'bcryptjs';
-import express, { Response } from "express";
-import { AuthenticatedRequest, optionalAuthentication, searchUsers, signTokens } from "swizzle-js";
 const router = express.Router();
 
 /*
@@ -107,10 +104,10 @@ router.post('/auth/email/login', optionalAuthentication, async (request: Authent
 
 export default router;
 //_SWIZZLE_FILE_PATH_frontend/src/components/EmailSignup.tsx
-import api from "../Api";
-import { useSignIn } from 'react-auth-kit'
 import { useState } from "react";
-import { useLocation, useNavigate, useNavigation } from "react-router-dom";
+import { useSignIn } from 'react-auth-kit';
+import { useLocation } from "react-router-dom";
+import api from "../Api";
 
 function EmailSignup({successPage}: {successPage?: string}) {
     const signIn = useSignIn()
@@ -201,10 +198,6 @@ function EmailSignup({successPage}: {successPage?: string}) {
 
 export default EmailSignup;
 //_SWIZZLE_FILE_PATH_frontend/src/components/EmailLogin.tsx
-import api from "../Api";
-import { useSignIn } from 'react-auth-kit'
-import { useState } from "react";
-import { useLocation, useNavigate, useNavigation } from "react-router-dom";
 
 function EmailLogin({successPage}: {successPage?: string}) {
     const signIn = useSignIn()
